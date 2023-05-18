@@ -1,18 +1,19 @@
 name: 🏷️ Auto tag
 
 on:
-  - pull_request_target
-
-concurrency:
-  group: ${{ github.head_ref }}
-  cancel-in-progress: true
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - edited
 
 jobs:
-  check-migrations:
+  label-changes:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v2
 
       - name: Set up Node.js
@@ -20,52 +21,8 @@ jobs:
         with:
           node-version: 14
 
-      - name: Check for new migrations
-        id: check-migrations
-        run: |
-          changed_files=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }})
-          if echo "$changed_files" | grep -qE '^migrations/.*\.migration\.ts$'; then
-            echo "::set-output name=migrations::true"
-          else
-            echo "::set-output name=migrations::false"
-          fi
+      - name: Install dependencies
+        run: npm install
 
-      - name: Add or remove label
-        if: steps.check-migrations.outputs.migrations == 'true' || contains(github.event.commits.*.modified, 'migrations/')
-        uses: actions/github-script@v4
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const { issue, context } = context.payload;
-            const octokit = github.getOctokit(process.env.GITHUB_TOKEN);
-
-            const addLabel = async () => {
-              await octokit.issues.addLabels({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: issue.number,
-                labels: ['migrations']
-              });
-            };
-
-            const removeLabel = async () => {
-              await octokit.issues.removeLabel({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: issue.number,
-                name: 'migrations'
-              });
-            };
-
-            const hasLabel = issue.labels.some(label => label.name === 'migrations');
-            if (context.payload.commits.some(commit => commit.modified.includes('migrations/'))) {
-              if (!hasLabel) {
-                addLabel();
-              }
-            } else {
-              if (hasLabel) {
-                removeLabel();
-              }
-            }
+      - name: Run label changes script
+        run: node label-changes.js
