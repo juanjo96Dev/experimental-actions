@@ -2,14 +2,24 @@
   "name": "experimental-actions",
   "version": "1.0.0",
   "description": "In this repository I will test with github actions",
-  "scripts": {
-    "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "main": "./dist",
+  "volta": {
+    "node": "18.0.0"
   },
-  "author": "",
-  "license": "ISC",
+  "scripts": {
+    "prebuild": "rimraf dist",
+    "build": "tsc",
+    "detect:label": "node ./dist/label-changes.js"
+  },
+  "author": "juanjo96dev",
+  "license": "GPL",
   "devDependencies": {
     "@actions/core": "^1.10.0",
-    "@actions/github": "^5.1.1"
+    "@actions/github": "^5.1.1",
+    "rimraf": "^5.0.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/juanjo96Dev/experimental-actions.git"
   }
 }
