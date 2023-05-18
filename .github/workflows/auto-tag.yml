@@ -1,9 +1,7 @@
 name: 🏷️ Auto tag
 
 on:
-  pull_request:
-    branches: ["main"]
-    types: [opened, reopened, ready_for_review, synchronize]
+  - pull_request_target
 
 concurrency:
   group: ${{ github.head_ref }}
@@ -33,7 +31,7 @@ jobs:
           fi
 
       - name: Add or remove label
-        if: steps.check-migrations.outputs.migrations == 'true' || contains(github.event.commits.*.modified, 'migrations/')
+        if: steps.check-migrations.outputs.migrations == 'true' || contains(github.event.head_commit.modified, 'migrations/')
         uses: actions/github-script@v4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
