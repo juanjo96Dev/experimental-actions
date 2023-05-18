@@ -41,7 +41,10 @@ jobs:
         name: ⚙️ npm ci
         run: npm ci
 
+      - name: ⌛ Run build
+        run: npm run build
+
       - name: 🔎 Run label changes script
-        run: node scripts/label-changes.js
+        run: node dist/label-changes.js
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
